@@ -8,96 +8,58 @@ function App() {
     useNetworkStatus();
   const [lastScore, setLastScore] = useState(0);
 
-  // Add/remove fullscreen classes to body and root
   useEffect(() => {
+    const root = document.getElementById("root");
     if (showDinoGame) {
       document.body.classList.add("fullscreen-mode");
-      document.getElementById("root").classList.add("fullscreen-mode");
+      root.classList.add("fullscreen-mode");
     } else {
       document.body.classList.remove("fullscreen-mode");
-      document.getElementById("root").classList.remove("fullscreen-mode");
+      root.classList.remove("fullscreen-mode");
     }
-
-    // Cleanup on unmount
     return () => {
       document.body.classList.remove("fullscreen-mode");
-      document.getElementById("root").classList.remove("fullscreen-mode");
+      root.classList.remove("fullscreen-mode");
     };
   }, [showDinoGame]);
-
-  const handleGameOver = (score) => {
-    setLastScore(score);
-  };
 
   return (
     <div className={`App ${showDinoGame ? "network-error-mode" : ""}`}>
       <header className="app-header">
-        <h1>Network-Aware Dino Game</h1>
-        <div className="network-status">
-          <span
-            className={`status-indicator ${isOnline ? "online" : "offline"}`}
-          >
-            {isOnline ? "🟢 Online" : "🔴 Offline"}
-          </span>
-        </div>
+        <h1>Dino Game (Network Test)</h1>
+        <span className={`status ${isOnline ? "online" : "offline"}`}>
+          {isOnline ? "Online" : "Offline"}
+        </span>
       </header>
 
       <main className="app-main">
         {showDinoGame ? (
-          <div className="network-error-container">
-            <div className="error-message">
-              <h2>No Internet Connection</h2>
-              <p>
-                You're offline! Enjoy the dinosaur game while you wait for the
-                connection to return.
-              </p>
-              {lastScore > 0 && (
-                <p className="last-score">Last Score: {lastScore}</p>
-              )}
-            </div>
-            <DinoGame onGameOver={handleGameOver} fullscreen={true} />
-            <button className="retry-button" onClick={clearNetworkError}>
-              Try Again
+          <div className="dino-wrapper">
+            <h2>No Internet Connection</h2>
+            <p>You are offline. Play the game while waiting to reconnect.</p>
+            {lastScore > 0 && <p className="last-score">Last Score: {lastScore}</p>}
+
+            <DinoGame onGameOver={setLastScore} fullscreen={true} />
+
+            <button className="action-btn" onClick={clearNetworkError}>
+              Retry Connection
             </button>
           </div>
         ) : (
-          <div className="online-content">
-            <div className="welcome-message">
-              <h2>Welcome! You're Online</h2>
-              <p>Your internet connection is working properly.</p>
-              <p>
-                Try disconnecting your internet or click the button below to
-                test the dino game!
-              </p>
-            </div>
-
-            <div className="demo-controls">
-              <button className="demo-button" onClick={simulateNetworkError}>
-                🦖 Simulate Network Error & Play Dino Game
-              </button>
-            </div>
-
-            <div className="features">
-              <h3>Features:</h3>
-              <ul>
-                <li>🦕 Classic dinosaur jumping game</li>
-                <li>📡 Automatic network detection</li>
-                <li>🎮 Keyboard controls (Space/Up Arrow)</li>
-                <li>📱 Click to jump on mobile</li>
-                <li>🏆 High score tracking</li>
-                <li>⚡ Increasing difficulty</li>
-                <li>🖥️ Fullscreen mode when offline</li>
-              </ul>
-            </div>
+          <div className="online-wrapper">
+            <h2>Connected</h2>
+            <p>Your internet connection is active.</p>
+            <button className="action-btn secondary" onClick={simulateNetworkError}>
+              Test Dino Game (Simulate Offline)
+            </button>
           </div>
         )}
       </main>
 
       <footer className="app-footer">
-        <p>
-          Built with React • Network Status:{" "}
-          {isOnline ? "Connected" : "Disconnected"}
-        </p>
+        <small>
+          React • Network Status: {isOnline ? "Connected" : "Disconnected"}
+        </small>
       </footer>
     </div>
   );

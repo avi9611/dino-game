@@ -1,359 +1,99 @@
+/* App Layout */
 .App {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: #2c2c2c;
+  background: #dfd5d5;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* Header */
 .app-header {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
+  background: #f4f4f4;
+  border-bottom: 1px solid #ddd;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-
 .app-header h1 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.network-status {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.status-indicator {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.status-indicator.online {
-  background: #4caf50;
-  color: white;
-}
-
-.status-indicator.offline {
-  background: #f44336;
-  color: white;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
-}
-
-.app-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-/* Fullscreen network error mode */
-.App.network-error-mode {
-  background: #f7f7f7;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  margin: 0;
-  padding: 0;
-}
-
-.App.network-error-mode .app-header {
-  display: none;
-}
-
-.App.network-error-mode .app-main {
-  padding: 0;
-  margin: 0;
-  height: 100vh;
-  width: 100vw;
-  max-width: none;
-  max-height: none;
-}
-
-.App.network-error-mode .app-footer {
-  display: none;
-}
-
-.network-error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  max-width: 800px;
-  width: 100%;
-}
-
-/* Fullscreen error container */
-.App.network-error-mode .network-error-container {
-  max-width: none;
-  width: 100vw;
-  height: 100vh;
-  justify-content: center;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-}
-
-.error-message {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-/* Fullscreen error message */
-.App.network-error-mode .error-message {
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 0;
-}
-
-.App.network-error-mode .error-message h2 {
-  color: #333;
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-.App.network-error-mode .error-message p {
-  color: #666;
-  font-size: 1.3rem;
-  margin: 8px 0;
-}
-
-.App.network-error-mode .last-score {
-  font-weight: bold;
-  color: #333 !important;
-  font-size: 1.4rem !important;
-}
-
-.App.network-error-mode .retry-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  background: #2196f3;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-}
-
-.App.network-error-mode .retry-button:hover {
-  background: #1976d2;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-}
-
-.retry-button {
-  background: #2196f3;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-}
-
-.retry-button:hover {
-  background: #1976d2;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-}
-
-.online-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-  max-width: 800px;
-  width: 100%;
-}
-
-.welcome-message {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.welcome-message h2 {
-  margin: 0 0 20px 0;
-  color: #4caf50;
-  font-size: 2.5rem;
-}
-
-.welcome-message p {
-  margin: 15px 0;
-  color: #666;
-  font-size: 1.2rem;
-  line-height: 1.6;
-}
-
-.demo-controls {
-  display: flex;
-  justify-content: center;
-}
-
-.demo-button {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 30px;
   font-size: 18px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
-}
-
-.demo-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
-}
-
-.features {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  width: 100%;
-  max-width: 600px;
-}
-
-.features h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.5rem;
-  text-align: center;
-}
-
-.features ul {
-  list-style: none;
-  padding: 0;
   margin: 0;
+  color: #222;
 }
 
-.features li {
-  padding: 10px 0;
-  color: #666;
-  font-size: 1.1rem;
-  border-bottom: 1px solid #eee;
+/* Status Tag */
+.status {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.status.online {
+  background: #e8f6ec;
+  color: #2a6b3f;
+  border-color: #bcd9c5;
+}
+.status.offline {
+  background: #fceaea;
+  color: #8a2c2c;
+  border-color: #e1b5b5;
 }
 
-.features li:last-child {
-  border-bottom: none;
+/* Main area */
+.app-main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
 }
-
-.app-footer {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 15px;
+.online-wrapper,
+.dino-wrapper {
+  max-width: 600px;
   text-align: center;
-  color: #666;
+}
+.online-wrapper h2,
+.dino-wrapper h2 {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+.online-wrapper p,
+.dino-wrapper p {
+  color: #555;
   font-size: 14px;
-  backdrop-filter: blur(10px);
+  margin-bottom: 16px;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .app-header h1 {
-    font-size: 2rem;
-  }
-  
-  .welcome-message h2 {
-    font-size: 2rem;
-  }
-  
-  .error-message h2 {
-    font-size: 1.5rem;
-  }
-  
-  .demo-button {
-    font-size: 16px;
-    padding: 12px 24px;
-  }
-  
-  .features {
-    padding: 20px;
-  }
-  
-  .features li {
-    font-size: 1rem;
-  }
-  
-  /* Mobile fullscreen adjustments */
-  .App.network-error-mode .error-message h2 {
-    font-size: 2rem;
-  }
-  
-  .App.network-error-mode .error-message p {
-    font-size: 1.1rem;
-  }
-  
-  .App.network-error-mode .retry-button {
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
-    font-size: 14px;
-  }
+/* Buttons */
+.action-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #160b0b;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.action-btn:hover {
+  background: #e5e5e5;
+}
+.action-btn.secondary {
+  margin-top: 10px;
+  background: #140a0a;
 }
 
-@media (max-width: 480px) {
-  .app-main {
-    padding: 10px;
-  }
-  
-  .welcome-message,
-  .error-message {
-    padding: 20px;
-  }
-  
-  .app-header {
-    padding: 15px;
-  }
-  
-  /* Mobile fullscreen adjustments */
-  .App.network-error-mode .error-message {
-    padding: 15px;
-  }
-  
-  .App.network-error-mode .error-message h2 {
-    font-size: 1.8rem;
-  }
-  
-  .App.network-error-mode .error-message p {
-    font-size: 1rem;
-  }
+/* Footer */
+.app-footer {
+  padding: 10px;
+  background: #f4f4f4;
+  border-top: 1px solid #ddd;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
 }
