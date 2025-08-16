@@ -2,13 +2,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "./DinoGame.css";
 
 const DinoGame = ({ onGameOver, fullscreen = false }) => {
-  const [gameState, setGameState] = useState("ready"); // ready | playing | gameOver
+  const [gameState, setGameState] = useState("ready");
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [dinoY, setDinoY] = useState(0);
   const [isJumping, setIsJumping] = useState(false);
   const [obstacles, setObstacles] = useState([]);
-  const [gameSpeed, setGameSpeed] = useState(4); // pixels per frame
+  const [gameSpeed, setGameSpeed] = useState(4); 
   const [collisionDetected, setCollisionDetected] = useState(false);
 
   const animationRef = useRef(null);
@@ -23,7 +23,6 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
   const JUMP_HEIGHT = fullscreen ? 160 : 100;
   const JUMP_DURATION = 600;
 
-  // 🕹️ Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.code === "Space" || e.code === "ArrowUp") {
@@ -42,7 +41,6 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [gameState, isJumping]);
 
-  // 🎮 Start game
   const startGame = useCallback(() => {
     setGameState("playing");
     setScore(0);
@@ -52,7 +50,6 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     setGameSpeed(4);
   }, []);
 
-  // 🧹 Reset game
   const resetGame = useCallback(() => {
     if (score > highScore) setHighScore(score);
     setGameState("ready");
@@ -63,7 +60,6 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     setGameSpeed(4);
   }, [score, highScore]);
 
-  // 🦖 Dino jump
   const jump = useCallback(() => {
     if (!isJumping) {
       setIsJumping(true);
@@ -74,7 +70,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         const progress = elapsed / JUMP_DURATION;
 
         if (progress < 1) {
-          const jumpProgress = Math.sin(progress * Math.PI); // Smooth arc
+          const jumpProgress = Math.sin(progress * Math.PI);
           setDinoY(JUMP_HEIGHT * jumpProgress);
           requestAnimationFrame(jumpAnimation);
         } else {
@@ -87,13 +83,11 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     }
   }, [isJumping]);
 
-  // 💀 Game Over
   const gameOver = useCallback(() => {
     setGameState("gameOver");
     if (onGameOver) onGameOver(score);
   }, [onGameOver, score]);
 
-  // 🎮 Game Loop
   const gameLoop = useCallback(() => {
     if (gameState !== "playing") return;
 
@@ -125,7 +119,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         }
       }
 
-      // ✅ Proper collision check (bounding box overlap)
+      // Proper collision check (bounding box overlap)
       const dinoRect = {
         x: fullscreen ? 75 : 50,
         y: dinoY,
@@ -142,16 +136,16 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         };
 
         return !(
-          dinoRect.x + dinoRect.width < obstacleRect.x || // too left
-          dinoRect.x > obstacleRect.x + obstacleRect.width || // too right
-          dinoRect.y + dinoRect.height < obstacleRect.y || // above
-          dinoRect.y > obstacleRect.y + obstacleRect.height // below
+          dinoRect.x + dinoRect.width < obstacleRect.x || 
+          dinoRect.x > obstacleRect.x + obstacleRect.width || 
+          dinoRect.y + dinoRect.height < obstacleRect.y || 
+          dinoRect.y > obstacleRect.y + obstacleRect.height 
         );
       });
 
       if (collision) {
         setCollisionDetected(true);
-        return prevObstacles; // freeze obstacles when dead
+        return prevObstacles; 
       }
 
       return updatedObstacles;
@@ -160,7 +154,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     animationRef.current = requestAnimationFrame(gameLoop);
   }, [gameState, gameSpeed, dinoY, fullscreen, gameOver]);
 
-  // 🔄 Start/Stop loop
+
   useEffect(() => {
     if (gameState === "playing") {
       animationRef.current = requestAnimationFrame(gameLoop);
@@ -170,7 +164,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     };
   }, [gameState, gameLoop]);
 
-  // 🚨 Trigger gameOver outside render phase
+
   useEffect(() => {
     if (collisionDetected) {
       gameOver();
