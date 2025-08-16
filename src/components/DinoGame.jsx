@@ -2,28 +2,27 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "./DinoGame.css";
 
 const DinoGame = ({ onGameOver, fullscreen = false }) => {
-  const [gameState, setGameState] = useState("ready");
+  const [gameState, setGameState] = useState("ready"); // ready | playing | gameOver
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [dinoY, setDinoY] = useState(0);
   const [isJumping, setIsJumping] = useState(false);
   const [obstacles, setObstacles] = useState([]);
-  const [gameSpeed, setGameSpeed] = useState(0.05); // Start much slower
+  const [gameSpeed, setGameSpeed] = useState(4); // pixels per frame
 
-  const gameRef = useRef(null);
   const animationRef = useRef(null);
-  const lastObstacleTime = useRef(0);
 
   // Game constants
   const GAME_HEIGHT = fullscreen ? 400 : 200;
-  const DINO_SIZE = fullscreen ? 45 : 30;
-  const OBSTACLE_WIDTH = fullscreen ? 30 : 20;
-  const OBSTACLE_HEIGHT = fullscreen ? 45 : 30;
-  const GROUND_Y = GAME_HEIGHT - DINO_SIZE;
-  const JUMP_HEIGHT = fullscreen ? 180 : 120;
-  const JUMP_DURATION = 500;
+  const GAME_WIDTH = fullscreen ? 800 : 600;
+  const DINO_SIZE = fullscreen ? 50 : 35;
+  const OBSTACLE_WIDTH = fullscreen ? 35 : 25;
+  const OBSTACLE_HEIGHT = fullscreen ? 50 : 30;
+  const GROUND_Y = 0;
+  const JUMP_HEIGHT = fullscreen ? 160 : 100;
+  const JUMP_DURATION = 600;
 
-  // Handle keyboard input
+  // 🕹️ Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.code === "Space" || e.code === "ArrowUp") {
@@ -42,16 +41,17 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [gameState, isJumping]);
 
+  // 🎮 Start game
   const startGame = useCallback(() => {
     setGameState("playing");
     setScore(0);
     setObstacles([]);
     setDinoY(0);
     setIsJumping(false);
-    setGameSpeed(0.15); // Lower initial speed
-    lastObstacleTime.current = Date.now();
+    setGameSpeed(4);
   }, []);
 
+  // 🧹 Reset game
   const resetGame = useCallback(() => {
     if (score > highScore) setHighScore(score);
     setGameState("ready");
@@ -59,10 +59,10 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     setObstacles([]);
     setDinoY(0);
     setIsJumping(false);
-    setGameSpeed(0.15); // Lower initial speed
-    lastObstacleTime.current = Date.now();
+    setGameSpeed(4);
   }, [score, highScore]);
 
+  // 🦖 Dino jump
   const jump = useCallback(() => {
     if (!isJumping) {
       setIsJumping(true);
@@ -73,10 +73,8 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         const progress = elapsed / JUMP_DURATION;
 
         if (progress < 1) {
-          const jumpProgress = Math.sin(progress * Math.PI);
+          const jumpProgress = Math.sin(progress * Math.PI); // Smooth arc
           setDinoY(JUMP_HEIGHT * jumpProgress);
-          // eslint-disable-next-line no-console
-          console.log("Jumping: dinoY =", JUMP_HEIGHT * jumpProgress);
           requestAnimationFrame(jumpAnimation);
         } else {
           setDinoY(0);
@@ -86,124 +84,92 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
 
       jumpAnimation();
     }
-  }, [isJumping, JUMP_HEIGHT, JUMP_DURATION]);
+  }, [isJumping]);
 
+  // 💀 Game Over
   const gameOver = useCallback(() => {
     setGameState("gameOver");
-    if (onGameOver) {
-      onGameOver(score);
-    }
+    if (onGameOver) onGameOver(score);
   }, [onGameOver, score]);
 
+  // 🎮 Game Loop
   const gameLoop = useCallback(() => {
     if (gameState !== "playing") return;
-    const currentTime = Date.now();
 
     setScore((prev) => {
       const newScore = prev + 1;
-      // Slowly increase game speed
-      if (newScore % 300 === 0 && newScore !== 0 && gameSpeed < 6) {
-        setGameSpeed((gs) => gs + 0.015);
+      // Increase difficulty gradually
+      if (newScore % 200 === 0 && gameSpeed < 15) {
+        setGameSpeed((gs) => gs + 0.5);
       }
       return newScore;
     });
 
     setObstacles((prevObstacles) => {
       let updatedObstacles = prevObstacles
-        .map((ob) => ({ ...ob, x: ob.x - gameSpeed * (fullscreen ? 8 : 6) }))
+        .map((ob) => ({ ...ob, x: ob.x - gameSpeed }))
         .filter((ob) => ob.x > -OBSTACLE_WIDTH);
 
-      // More frequent obstacles
-      const spawnProbability = 0.03 + gameSpeed * 0.1;
-      if (Math.random() < spawnProbability || updatedObstacles.length === 0) {
-        if (
-          updatedObstacles.length === 0 ||
-          (updatedObstacles.length > 0 &&
-            (fullscreen
-              ? updatedObstacles[updatedObstacles.length - 1].x < 350
-              : updatedObstacles[updatedObstacles.length - 1].x < 250))
-        ) {
-          const newObstacle = {
-            id: currentTime + Math.random(),
-            x: fullscreen ? 700 : 500,
-            y: 0,
-          };
-          updatedObstacles = [...updatedObstacles, newObstacle];
-          lastObstacleTime.current = currentTime;
+      // Spawn new obstacle
+      if (
+        updatedObstacles.length === 0 ||
+        updatedObstacles[updatedObstacles.length - 1].x < GAME_WIDTH - 200
+      ) {
+        if (Math.random() < 0.02 + gameSpeed * 0.003) {
+          updatedObstacles.push({
+            id: Date.now(),
+            x: GAME_WIDTH,
+            y: GROUND_Y,
+          });
         }
       }
 
-      // Check collisions
-      // Add a margin above the obstacle and below the dino for more forgiving collision
+      // ✅ Proper collision check (bounding box overlap)
       const dinoRect = {
-        x: (fullscreen ? 75 : 50) + 14,
-        y: dinoY + 2,
-        width: DINO_SIZE - 30,
-        height: 2,
+        x: fullscreen ? 75 : 50,
+        y: dinoY,
+        width: DINO_SIZE,
+        height: DINO_SIZE,
       };
-  
-      const collision = updatedObstacles.some((obstacle) => {
+
+      const collision = updatedObstacles.some((ob) => {
         const obstacleRect = {
-          x: obstacle.x + 2,
-          y: 0,
-          width: OBSTACLE_WIDTH - 24,
-          height: 2,
+          x: ob.x,
+          y: GROUND_Y,
+          width: OBSTACLE_WIDTH,
+          height: OBSTACLE_HEIGHT,
         };
 
-        // Debug: Log bounding boxes and collision state
-        // Only check collision if dino is almost exactly on the ground
-        const isDinoOnGround = dinoY < 2;
-        const isColliding =
-          isDinoOnGround &&
-          dinoRect.x < obstacleRect.x + obstacleRect.width &&
-          dinoRect.x + dinoRect.width > obstacleRect.x &&
-          dinoRect.y < obstacleRect.y + obstacleRect.height &&
-          dinoRect.y + dinoRect.height > obstacleRect.y;
-
-        // Log hitbox positions every frame for debugging
-        // eslint-disable-next-line no-console
-        console.log({ dinoRect, obstacleRect, dinoY, isColliding });
-
-        if (isColliding) {
-          // eslint-disable-next-line no-console
-          console.log("Collision detected!", { dinoRect, obstacleRect, dinoY });
-        }
-
-        return isColliding;
+        return !(
+          dinoRect.x + dinoRect.width < obstacleRect.x || // too left
+          dinoRect.x > obstacleRect.x + obstacleRect.width || // too right
+          dinoRect.y + dinoRect.height < obstacleRect.y || // above
+          dinoRect.y > obstacleRect.y + obstacleRect.height // below
+        );
       });
 
       if (collision) {
         gameOver();
-        return prevObstacles; // Don't update obstacles if game over
+        return prevObstacles; // freeze obstacles when dead
       }
 
       return updatedObstacles;
     });
 
     animationRef.current = requestAnimationFrame(gameLoop);
-  }, [
-    gameState,
-    gameSpeed,
-    dinoY,
-    fullscreen,
-    OBSTACLE_WIDTH,
-    OBSTACLE_HEIGHT,
-    DINO_SIZE,
-    gameOver,
-  ]);
+  }, [gameState, gameSpeed, dinoY, fullscreen, gameOver]);
 
-  // Start game loop when playing
+  // 🔄 Start/Stop loop
   useEffect(() => {
     if (gameState === "playing") {
       animationRef.current = requestAnimationFrame(gameLoop);
     }
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [gameState]);
+  }, [gameState, gameLoop]);
 
+  // 🖱️ Handle clicks
   const handleClick = useCallback(() => {
     if (gameState === "ready") {
       startGame();
@@ -218,107 +184,64 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     <div className={`dino-game-container ${fullscreen ? "fullscreen" : ""}`}>
       <div className="game-info">
         <div className="score">Score: {score}</div>
-        {gameState === "gameOver" && (
-          <button className="try-again-btn" onClick={resetGame}>
-            Try Again
-          </button>
-        )}
         <div className="high-score">High Score: {highScore}</div>
       </div>
 
       <div
-        ref={gameRef}
         className="game-area"
         onClick={handleClick}
-        style={{ height: GAME_HEIGHT }}
+        style={{ height: GAME_HEIGHT, width: GAME_WIDTH }}
       >
-        <>
-          {/* Dino */}
+        {/* Dino */}
+        <div
+          className="dino"
+          style={{
+            bottom: dinoY,
+            left: fullscreen ? 75 : 50,
+            width: DINO_SIZE,
+            height: DINO_SIZE,
+          }}
+        />
+
+        {/* Obstacles */}
+        {obstacles.map((ob) => (
           <div
-            className="dino"
+            key={ob.id}
+            className="obstacle"
             style={{
-              bottom: dinoY,
-              left: fullscreen ? 75 : 50,
-              width: DINO_SIZE,
-              height: DINO_SIZE,
+              left: ob.x,
+              bottom: ob.y,
+              width: OBSTACLE_WIDTH,
+              height: OBSTACLE_HEIGHT,
             }}
           />
+        ))}
 
-          {/* Obstacles */}
-          {obstacles.map((obstacle) => (
-            <div
-              key={obstacle.id}
-              className="obstacle"
-              style={{
-                left: obstacle.x,
-                bottom: obstacle.y,
-                width: OBSTACLE_WIDTH,
-                height: OBSTACLE_HEIGHT,
-              }}
-            />
-          ))}
+        {/* Ground */}
+        <div className="ground" />
 
-          {/* Debug: Dino hitbox */}
-          <div
-            style={{
-              position: "absolute",
-              left: (fullscreen ? 75 : 50) + 14,
-              bottom: dinoY,
-              width: DINO_SIZE - 30,
-              height: 6,
-              border: "2px solid red",
-              pointerEvents: "none",
-              zIndex: 10,
-            }}
-          ></div>
-
-          {/* Debug: Obstacle hitboxes */}
-          {obstacles.map((obstacle) => (
-            <div
-              key={obstacle.id + "-hitbox"}
-              style={{
-                position: "absolute",
-                left: obstacle.x + 2,
-                bottom: 0,
-                width: OBSTACLE_WIDTH - 24 > 0 ? OBSTACLE_WIDTH - 24 : 2,
-                height: 6,
-                border: "2px solid blue",
-                pointerEvents: "none",
-                zIndex: 10,
-              }}
-            ></div>
-          ))}
-
-          {/* Ground */}
-          <div className="ground" style={{ bottom: 0 }} />
-
-          {/* Game state overlay */}
-          {gameState === "ready" && (
-            <div className="game-overlay">
-              <h2>Press SPACE or CLICK to start</h2>
-              <p>Jump over the obstacles!</p>
-            </div>
-          )}
-
-          {gameState === "gameOver" && (
-            <div className="game-overlay">
-              <h2>Game Over!</h2>
-              <p>Score: {score}</p>
-              <p>Press SPACE or CLICK to restart</p>
-            </div>
-          )}
-        </>
+        {/* Overlay messages */}
+        {gameState === "ready" && (
+          <div className="game-overlay">
+            <h2>Press SPACE or CLICK to Start</h2>
+            <p>Jump over obstacles!</p>
+          </div>
+        )}
+        {gameState === "gameOver" && (
+          <div className="game-overlay">
+            <h2>Game Over!</h2>
+            <p>Score: {score}</p>
+            <p>Press SPACE or CLICK to Restart</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Move instructions outside the main component
+// Instructions
 export const GameInstructions = () => (
-  <div
-    className="game-instructions"
-    style={{ marginTop: 16, textAlign: "center" }}
-  >
+  <div className="game-instructions" style={{ marginTop: 16, textAlign: "center" }}>
     <p>Use SPACE, UP ARROW, or CLICK to jump</p>
   </div>
 );

@@ -360,3 +360,48 @@
 .network-error .ground {
   background: #c62828;
 }
+
+.dino-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 8px;
+}
+
+.score, .high-score {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.game-area {
+  position: relative;
+  background: #fdfdfd;
+  border: 2px solid #333;
+  overflow: hidden;
+}
+
+.dino {
+  position: absolute;
+  background: green;
+}
+
+.obstacle {
+  position: absolute;
+  background: brown;
+}
+
+.ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 6px;
+  background: #333;
+}
+
