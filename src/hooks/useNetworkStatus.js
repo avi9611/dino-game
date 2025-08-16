@@ -28,14 +28,14 @@ const useNetworkStatus = () => {
     const testConnection = async () => {
       try {
         // Try to fetch a small resource to test connectivity
-        const response = await fetch('https://www.google.com/favicon.ico', {
+        await fetch('https://www.google.com/favicon.ico', {
           method: 'HEAD',
           mode: 'no-cors',
           cache: 'no-cache'
         });
         setIsOnline(true);
         setShowDinoGame(false);
-      } catch (error) {
+      } catch {
         setIsOnline(false);
         setShowDinoGame(true);
       }
