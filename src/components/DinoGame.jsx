@@ -199,18 +199,36 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
       <div
         className="game-area"
         onClick={handleClick}
-        style={{ height: GAME_HEIGHT, width: GAME_WIDTH }}
+        style={{ width: "100%" }}
       >
         {/* Dino */}
         <div
           className="dino"
           style={{
-            bottom: dinoY,
-            left: fullscreen ? 75 : 50,
-            width: DINO_SIZE,
-            height: DINO_SIZE,
+            bottom: `calc(${dinoY / (fullscreen ? 400 : 200)} * 100% )`,
+            left: fullscreen ? "12%" : "8%",
+            width: fullscreen ? "6.5%" : "6%",
+            height: fullscreen ? "12%" : "18%",
+            minWidth: 20,
+            minHeight: 20,
+            maxWidth: 60,
+            maxHeight: 80,
           }}
-        />
+        >
+          <div className="dino-body">
+            <div className="dino-tail"></div>
+            <div className="dino-leg dino-leg-left"></div>
+            <div className="dino-leg dino-leg-right"></div>
+            <div className="dino-neck">
+              <div className="dino-head">
+                <div className="dino-eye"></div>
+                <div className="dino-mouth"></div>
+              </div>
+            </div>
+            <div className="dino-arm dino-arm-left"></div>
+            <div className="dino-arm dino-arm-right"></div>
+          </div>
+        </div>
 
         {/* Obstacles */}
         {obstacles.map((ob) => (
@@ -218,10 +236,14 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
             key={ob.id}
             className="obstacle"
             style={{
-              left: ob.x,
+              left: `calc(${ob.x / (fullscreen ? 800 : 600)} * 100%)`,
               bottom: ob.y,
-              width: OBSTACLE_WIDTH,
-              height: OBSTACLE_HEIGHT,
+              width: fullscreen ? "4.5%" : "4%",
+              height: fullscreen ? "12%" : "15%",
+              minWidth: 12,
+              minHeight: 20,
+              maxWidth: 40,
+              maxHeight: 60,
             }}
           />
         ))}
