@@ -9,6 +9,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
   const [isJumping, setIsJumping] = useState(false);
   const [obstacles, setObstacles] = useState([]);
   const [gameSpeed, setGameSpeed] = useState(4); // pixels per frame
+  const [collisionDetected, setCollisionDetected] = useState(false);
 
   const animationRef = useRef(null);
 
@@ -149,7 +150,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
       });
 
       if (collision) {
-        gameOver();
+        setCollisionDetected(true);
         return prevObstacles; // freeze obstacles when dead
       }
 
@@ -168,6 +169,14 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [gameState, gameLoop]);
+
+  // 🚨 Trigger gameOver outside render phase
+  useEffect(() => {
+    if (collisionDetected) {
+      gameOver();
+      setCollisionDetected(false);
+    }
+  }, [collisionDetected, gameOver]);
 
   // 🖱️ Handle clicks
   const handleClick = useCallback(() => {
