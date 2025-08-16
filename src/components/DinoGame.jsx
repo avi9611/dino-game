@@ -75,6 +75,8 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         if (progress < 1) {
           const jumpProgress = Math.sin(progress * Math.PI);
           setDinoY(JUMP_HEIGHT * jumpProgress);
+          // eslint-disable-next-line no-console
+          console.log("Jumping: dinoY =", JUMP_HEIGHT * jumpProgress);
           requestAnimationFrame(jumpAnimation);
         } else {
           setDinoY(0);
@@ -135,9 +137,9 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
       // Add a margin above the obstacle and below the dino for more forgiving collision
       const dinoRect = {
         x: (fullscreen ? 75 : 50) + 14,
-        y: dinoY,
+        y: dinoY + 2,
         width: DINO_SIZE - 30,
-        height: 4,
+        height: 2,
       };
   
       const collision = updatedObstacles.some((obstacle) => {
@@ -145,28 +147,28 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
           x: obstacle.x + 2,
           y: 0,
           width: OBSTACLE_WIDTH - 24,
-          height: 4,
+          height: 2,
         };
-  
+
         // Debug: Log bounding boxes and collision state
-        // Require at least 5px overlap horizontally and vertically to count as collision
-        const overlapX = Math.min(
-          dinoRect.x + dinoRect.width,
-          obstacleRect.x + obstacleRect.width
-        ) - Math.max(dinoRect.x, obstacleRect.x);
-  
-        const overlapY = Math.min(
-          dinoRect.y + dinoRect.height,
-          obstacleRect.y + obstacleRect.height
-        ) - Math.max(dinoRect.y, obstacleRect.y);
-  
-        const isColliding = overlapX > 5 && overlapY > 5;
-  
+        // Only check collision if dino is almost exactly on the ground
+        const isDinoOnGround = dinoY < 2;
+        const isColliding =
+          isDinoOnGround &&
+          dinoRect.x < obstacleRect.x + obstacleRect.width &&
+          dinoRect.x + dinoRect.width > obstacleRect.x &&
+          dinoRect.y < obstacleRect.y + obstacleRect.height &&
+          dinoRect.y + dinoRect.height > obstacleRect.y;
+
+        // Log hitbox positions every frame for debugging
+        // eslint-disable-next-line no-console
+        console.log({ dinoRect, obstacleRect, dinoY, isColliding });
+
         if (isColliding) {
           // eslint-disable-next-line no-console
-          console.log("Collision detected!", { dinoRect, obstacleRect, overlapX, overlapY });
+          console.log("Collision detected!", { dinoRect, obstacleRect, dinoY });
         }
-  
+
         return isColliding;
       });
 
@@ -230,49 +232,82 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
         onClick={handleClick}
         style={{ height: GAME_HEIGHT }}
       >
-        {/* Dino */}
-        <div
-          className="dino"
-          style={{
-            bottom: dinoY,
-            left: fullscreen ? 75 : 50,
-            width: DINO_SIZE,
-            height: DINO_SIZE,
-          }}
-        />
-
-        {/* Obstacles */}
-        {obstacles.map((obstacle) => (
+        <>
+          {/* Dino */}
           <div
-            key={obstacle.id}
-            className="obstacle"
+            className="dino"
             style={{
-              left: obstacle.x,
-              bottom: obstacle.y,
-              width: OBSTACLE_WIDTH,
-              height: OBSTACLE_HEIGHT,
+              bottom: dinoY,
+              left: fullscreen ? 75 : 50,
+              width: DINO_SIZE,
+              height: DINO_SIZE,
             }}
           />
-        ))}
 
-        {/* Ground */}
-        <div className="ground" style={{ bottom: 0 }} />
+          {/* Obstacles */}
+          {obstacles.map((obstacle) => (
+            <div
+              key={obstacle.id}
+              className="obstacle"
+              style={{
+                left: obstacle.x,
+                bottom: obstacle.y,
+                width: OBSTACLE_WIDTH,
+                height: OBSTACLE_HEIGHT,
+              }}
+            />
+          ))}
 
-        {/* Game state overlay */}
-        {gameState === "ready" && (
-          <div className="game-overlay">
-            <h2>Press SPACE or CLICK to start</h2>
-            <p>Jump over the obstacles!</p>
-          </div>
-        )}
+          {/* Debug: Dino hitbox */}
+          <div
+            style={{
+              position: "absolute",
+              left: (fullscreen ? 75 : 50) + 14,
+              bottom: dinoY,
+              width: DINO_SIZE - 30,
+              height: 6,
+              border: "2px solid red",
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          ></div>
 
-        {gameState === "gameOver" && (
-          <div className="game-overlay">
-            <h2>Game Over!</h2>
-            <p>Score: {score}</p>
-            <p>Press SPACE or CLICK to restart</p>
-          </div>
-        )}
+          {/* Debug: Obstacle hitboxes */}
+          {obstacles.map((obstacle) => (
+            <div
+              key={obstacle.id + "-hitbox"}
+              style={{
+                position: "absolute",
+                left: obstacle.x + 2,
+                bottom: 0,
+                width: OBSTACLE_WIDTH - 24 > 0 ? OBSTACLE_WIDTH - 24 : 2,
+                height: 6,
+                border: "2px solid blue",
+                pointerEvents: "none",
+                zIndex: 10,
+              }}
+            ></div>
+          ))}
+
+          {/* Ground */}
+          <div className="ground" style={{ bottom: 0 }} />
+
+          {/* Game state overlay */}
+          {gameState === "ready" && (
+            <div className="game-overlay">
+              <h2>Press SPACE or CLICK to start</h2>
+              <p>Jump over the obstacles!</p>
+            </div>
+          )}
+
+          {gameState === "gameOver" && (
+            <div className="game-overlay">
+              <h2>Game Over!</h2>
+              <p>Score: {score}</p>
+              <p>Press SPACE or CLICK to restart</p>
+            </div>
+          )}
+        </>
       </div>
     </div>
   );
