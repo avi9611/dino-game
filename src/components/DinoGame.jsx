@@ -20,7 +20,7 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
   const OBSTACLE_WIDTH = fullscreen ? 30 : 20;
   const OBSTACLE_HEIGHT = fullscreen ? 45 : 30;
   const GROUND_Y = GAME_HEIGHT - DINO_SIZE;
-  const JUMP_HEIGHT = fullscreen ? 120 : 80;
+  const JUMP_HEIGHT = fullscreen ? 180 : 120;
   const JUMP_DURATION = 500;
 
   // Handle keyboard input
@@ -108,7 +108,7 @@ const gameLoop = useCallback(() => {
 
   setObstacles(prevObstacles => {
     let updatedObstacles = prevObstacles
-      .map((ob) => ({ ...ob, x: ob.x - gameSpeed * (fullscreen ? 1.2 : 0.9) }))
+      .map((ob) => ({ ...ob, x: ob.x - gameSpeed * (fullscreen ? 8 : 6) }))
       .filter((ob) => ob.x > -OBSTACLE_WIDTH);
 
     // More frequent obstacles
@@ -143,11 +143,14 @@ const gameLoop = useCallback(() => {
       const obstacleRect = {
         x: obstacle.x,
         y: 0,
-        width: OBSTACLE_WIDTH,
-        height: OBSTACLE_HEIGHT,
+        width: OBSTACLE_WIDTH - 8, // Narrower obstacle hitbox
+        height: OBSTACLE_HEIGHT - 18, // Much shorter for easier jump
       };
 
+      // Only check collision if dino is on the ground (not jumping above obstacle)
+      const isDinoOnGround = dinoY < 10;
       return (
+        isDinoOnGround &&
         dinoRect.x < obstacleRect.x + obstacleRect.width &&
         dinoRect.x + dinoRect.width > obstacleRect.x &&
         dinoRect.y < obstacleRect.y + obstacleRect.height &&
