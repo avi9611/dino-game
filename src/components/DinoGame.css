@@ -49,10 +49,10 @@
   overflow: hidden;
   width: 100vw;
   max-width: 1400px;
-  height: 35vw;
-  max-height: 500px;
+  height: 22vw;
+  max-height: 320px;
   min-width: 600px;
-  min-height: 200px;
+  min-height: 120px;
   touch-action: manipulation;
   box-sizing: border-box;
 }
