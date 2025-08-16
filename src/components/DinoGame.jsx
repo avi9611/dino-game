@@ -42,26 +42,26 @@ const DinoGame = ({ onGameOver, fullscreen = false }) => {
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [gameState, isJumping]);
 
-const startGame = useCallback(() => {
-  setGameState("playing");
-  setScore(0);
-  setObstacles([]);
-  setDinoY(0);
-  setIsJumping(false);
-  setGameSpeed(0.15); // Lower initial speed
-  lastObstacleTime.current = Date.now();
-}, []);
+  const startGame = useCallback(() => {
+    setGameState("playing");
+    setScore(0);
+    setObstacles([]);
+    setDinoY(0);
+    setIsJumping(false);
+    setGameSpeed(0.15); // Lower initial speed
+    lastObstacleTime.current = Date.now();
+  }, []);
 
-const resetGame = useCallback(() => {
-  if (score > highScore) setHighScore(score);
-  setGameState("ready");
-  setScore(0);
-  setObstacles([]);
-  setDinoY(0);
-  setIsJumping(false);
-  setGameSpeed(0.15); // Lower initial speed
-  lastObstacleTime.current = Date.now();
-}, [score, highScore]);
+  const resetGame = useCallback(() => {
+    if (score > highScore) setHighScore(score);
+    setGameState("ready");
+    setScore(0);
+    setObstacles([]);
+    setDinoY(0);
+    setIsJumping(false);
+    setGameSpeed(0.15); // Lower initial speed
+    lastObstacleTime.current = Date.now();
+  }, [score, highScore]);
 
   const jump = useCallback(() => {
     if (!isJumping) {
@@ -93,90 +93,102 @@ const resetGame = useCallback(() => {
     }
   }, [onGameOver, score]);
 
-const gameLoop = useCallback(() => {
-  if (gameState !== "playing") return;
-  const currentTime = Date.now();
+  const gameLoop = useCallback(() => {
+    if (gameState !== "playing") return;
+    const currentTime = Date.now();
 
-  setScore(prev => {
-    const newScore = prev + 1;
-    // Slowly increase game speed
-    if (newScore % 300 === 0 && newScore !== 0 && gameSpeed < 6) {
-      setGameSpeed(gs => gs + 0.015);
-    }
-    return newScore;
-  });
-
-  setObstacles(prevObstacles => {
-    let updatedObstacles = prevObstacles
-      .map((ob) => ({ ...ob, x: ob.x - gameSpeed * (fullscreen ? 8 : 6) }))
-      .filter((ob) => ob.x > -OBSTACLE_WIDTH);
-
-    // More frequent obstacles
-    const spawnProbability = 0.03 + gameSpeed * 0.1;
-    if (Math.random() < spawnProbability || updatedObstacles.length === 0) {
-      if (
-        updatedObstacles.length === 0 ||
-        (updatedObstacles.length > 0 &&
-          (fullscreen
-            ? updatedObstacles[updatedObstacles.length - 1].x < 350
-            : updatedObstacles[updatedObstacles.length - 1].x < 250))
-      ) {
-        const newObstacle = {
-          id: currentTime + Math.random(),
-          x: fullscreen ? 700 : 500,
-          y: 0,
-        };
-        updatedObstacles = [...updatedObstacles, newObstacle];
-        lastObstacleTime.current = currentTime;
+    setScore((prev) => {
+      const newScore = prev + 1;
+      // Slowly increase game speed
+      if (newScore % 300 === 0 && newScore !== 0 && gameSpeed < 6) {
+        setGameSpeed((gs) => gs + 0.015);
       }
-    }
-
-    // Check collisions
-    const dinoRect = {
-      x: fullscreen ? 75 : 50,
-      y: dinoY,
-      width: DINO_SIZE,
-      height: DINO_SIZE,
-    };
-
-    const collision = updatedObstacles.some((obstacle) => {
-      const obstacleRect = {
-        x: obstacle.x,
-        y: 0,
-        width: OBSTACLE_WIDTH - 8, // Narrower obstacle hitbox
-        height: OBSTACLE_HEIGHT - 18, // Much shorter for easier jump
-      };
-
-      // Only check collision if dino is on the ground (not jumping above obstacle)
-      const isDinoOnGround = dinoY < 10;
-      return (
-        isDinoOnGround &&
-        dinoRect.x < obstacleRect.x + obstacleRect.width &&
-        dinoRect.x + dinoRect.width > obstacleRect.x &&
-        dinoRect.y < obstacleRect.y + obstacleRect.height &&
-        dinoRect.y + dinoRect.height > obstacleRect.y
-      );
+      return newScore;
     });
 
-    if (collision) {
-      gameOver();
-      return prevObstacles; // Don't update obstacles if game over
-    }
+    setObstacles((prevObstacles) => {
+      let updatedObstacles = prevObstacles
+        .map((ob) => ({ ...ob, x: ob.x - gameSpeed * (fullscreen ? 8 : 6) }))
+        .filter((ob) => ob.x > -OBSTACLE_WIDTH);
 
-    return updatedObstacles;
-  });
+      // More frequent obstacles
+      const spawnProbability = 0.03 + gameSpeed * 0.1;
+      if (Math.random() < spawnProbability || updatedObstacles.length === 0) {
+        if (
+          updatedObstacles.length === 0 ||
+          (updatedObstacles.length > 0 &&
+            (fullscreen
+              ? updatedObstacles[updatedObstacles.length - 1].x < 350
+              : updatedObstacles[updatedObstacles.length - 1].x < 250))
+        ) {
+          const newObstacle = {
+            id: currentTime + Math.random(),
+            x: fullscreen ? 700 : 500,
+            y: 0,
+          };
+          updatedObstacles = [...updatedObstacles, newObstacle];
+          lastObstacleTime.current = currentTime;
+        }
+      }
 
-  animationRef.current = requestAnimationFrame(gameLoop);
-}, [
-  gameState,
-  gameSpeed,
-  dinoY,
-  fullscreen,
-  OBSTACLE_WIDTH,
-  OBSTACLE_HEIGHT,
-  DINO_SIZE,
-  gameOver,
-]);
+      // Check collisions
+      // Add a margin above the obstacle and below the dino for more forgiving collision
+      const dinoRect = {
+        x: (fullscreen ? 75 : 50) + 14,
+        y: dinoY,
+        width: DINO_SIZE - 30,
+        height: 4,
+      };
+  
+      const collision = updatedObstacles.some((obstacle) => {
+        const obstacleRect = {
+          x: obstacle.x + 2,
+          y: 0,
+          width: OBSTACLE_WIDTH - 24,
+          height: 4,
+        };
+  
+        // Debug: Log bounding boxes and collision state
+        // Require at least 5px overlap horizontally and vertically to count as collision
+        const overlapX = Math.min(
+          dinoRect.x + dinoRect.width,
+          obstacleRect.x + obstacleRect.width
+        ) - Math.max(dinoRect.x, obstacleRect.x);
+  
+        const overlapY = Math.min(
+          dinoRect.y + dinoRect.height,
+          obstacleRect.y + obstacleRect.height
+        ) - Math.max(dinoRect.y, obstacleRect.y);
+  
+        const isColliding = overlapX > 5 && overlapY > 5;
+  
+        if (isColliding) {
+          // eslint-disable-next-line no-console
+          console.log("Collision detected!", { dinoRect, obstacleRect, overlapX, overlapY });
+        }
+  
+        return isColliding;
+      });
+
+      if (collision) {
+        gameOver();
+        return prevObstacles; // Don't update obstacles if game over
+      }
+
+      return updatedObstacles;
+    });
+
+    animationRef.current = requestAnimationFrame(gameLoop);
+  }, [
+    gameState,
+    gameSpeed,
+    dinoY,
+    fullscreen,
+    OBSTACLE_WIDTH,
+    OBSTACLE_HEIGHT,
+    DINO_SIZE,
+    gameOver,
+  ]);
 
   // Start game loop when playing
   useEffect(() => {
@@ -262,14 +274,16 @@ const gameLoop = useCallback(() => {
           </div>
         )}
       </div>
-
     </div>
   );
 };
 
 // Move instructions outside the main component
 export const GameInstructions = () => (
-  <div className="game-instructions" style={{ marginTop: 16, textAlign: "center" }}>
+  <div
+    className="game-instructions"
+    style={{ marginTop: 16, textAlign: "center" }}
+  >
     <p>Use SPACE, UP ARROW, or CLICK to jump</p>
   </div>
 );
